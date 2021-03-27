@@ -1,26 +1,21 @@
 #!/bin/bash
-ZZZ="package/lean/default-settings/files/zzz-default-settings"
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
 
-sed -i "/uci commit fstab/a\uci commit network" $ZZZ
-sed -i "/uci commit network/i\uci set network.lan.ipaddr='192.168.2.2'" $ZZZ              # IPv4 地址(openwrt后台地址)
-sed -i "/uci commit network/i\uci set network.lan.netmask='255.255.255.0'" $ZZZ           # IPv4 子网掩码
-sed -i "/uci commit network/i\uci set network.lan.gateway='192.168.2.1'" $ZZZ             # IPv4 网关
-sed -i "/uci commit network/i\uci set network.lan.broadcast='192.168.2.255'" $ZZZ         # IPv4 广播
-sed -i "/uci commit network/i\uci set network.lan.dns='223.5.5.5 114.114.114.114'" $ZZZ   # DNS(多个DNS要用空格分开)
-sed -i "/uci commit network/i\uci set network.lan.delegate='0'" $ZZZ                      # 去掉LAN口使用内置的 IPv6 管理
+# 修改openwrt登陆地址,把下面的192.168.2.2修改成你想要的就可以了
+sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
 
-sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile   # 强制选择argon为默认主题选项
-sed -i "/uci commit luci/i\uci set luci.main.mediaurlbase=/luci-static/argon" $ZZZ        # 选择argon为默认主题
+# 修改主机名字，把OpenWrt-123修改你喜欢的就行（不能纯数字或者使用中文）
+sed -i '/uci commit system/i\uci set system.@system[0].hostname='OpenWrt-R2S'' package/lean/default-settings/files/zzz-default-settings
 
-sed -i "/uci commit system/i\uci set system.@system[0].hostname='OpenWrt-123'" $ZZZ       # 修改主机名称为OpenWrt-123
+# 版本号里显示一个自己的名字（281677160 build $(TZ=UTC-8 date "+%Y.%m.%d") @ 这些都是后增加的）
+sed -i "s/OpenWrt /JingMeng1998 build $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" package/lean/default-settings/files/zzz-default-settings
 
-sed -i "s/OpenWrt /281677160 build $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" $ZZZ        # 增加自己个性名称281677160
+# 修改 argon 为默认主题,可根据你喜欢的修改成其他的（不选择那些会自动改变为默认主题的主题才有效果）
+sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
-sed -i '/CYXluq4wUazHjmCDBCqXF/d' $ZZZ                                                    # 设置密码为空
-
-#sed -i 's/PATCHVER:=5.4/PATCHVER:=4.19/g' target/linux/x86/Makefile                      # 修改内核版本为4.19
+# 设置密码为空（安装固件时无需密码登陆，然后自己修改想要的密码）
+sed -i 's@.*CYXluq4wUazHjmCDBCqXF*@#&@g' package/lean/default-settings/files/zzz-default-settings
 
 
 # 修改插件名字（修改名字后不知道会不会对插件功能有影响，自己多测试）
@@ -39,3 +34,7 @@ sed -i 's/"网络存储"/"存储"/g' package/lean/luci-app-usb-printer/po/zh-cn/
 sed -i 's/"Web 管理"/"Web"/g' package/lean/luci-app-webadmin/po/zh-cn/webadmin.po
 sed -i 's/"管理权"/"改密码"/g' feeds/luci/modules/luci-base/po/zh-cn/base.po
 sed -i 's/"带宽监控"/"监视"/g' feeds/luci/applications/luci-app-nlbwmon/po/zh-cn/nlbwmon.po
+
+#SWAP LAN WAN（满足千兆场景，可选
+sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
+sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
